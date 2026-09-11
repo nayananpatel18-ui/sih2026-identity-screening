@@ -1,0 +1,38 @@
+# Virtual Environment
+venv/
+.venv/
+env/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node / React
+node_modules/
+dist/
+build/
+.npm
+*.tsbuildinfo
+
+# Environment & Credentials
+.env
+*.pem
+*.key
+firebase-key.json
+serviceAccountKey.json
+
+# Operating System & IDEs
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Temporary Uploads & Processing
+temp_uploads/
+*.log

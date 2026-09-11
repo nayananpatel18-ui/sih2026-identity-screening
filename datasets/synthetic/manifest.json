@@ -1,0 +1,118 @@
+{
+  "dataset_name": "synthetic",
+  "version": "1.0.0",
+  "description": "Controlled synthetic de-identified identity screening dataset for SIH 2026",
+  "samples": [
+    {
+      "sample_id": "CASE_001_GENUINE",
+      "source_dataset": "synthetic",
+      "document_type": "PASSPORT",
+      "document_image": "datasets/synthetic/genuine/passport_001.png",
+      "secondary_document_image": "datasets/synthetic/genuine/visa_001.png",
+      "person_image": "datasets/synthetic/genuine/person_001.png",
+      "extracted_fields": {
+        "given_names": "RAJESH KUMAR",
+        "surname": "SHARMA",
+        "full_name": "RAJESH KUMAR SHARMA",
+        "dob": "1988-05-14",
+        "gender": "M",
+        "nationality": "IND",
+        "document_number": "Z1234567",
+        "expiry_date": "2031-05-13",
+        "issuing_country": "IND",
+        "mrz_raw": "P<INDSHARMA<<RAJESH<KUMAR<<<<<<<<<<<<<<<<<<<\nZ1234567<4IND8805142M3105137<<<<<<<<<<<<<<02"
+      },
+      "quality_metadata": {
+        "blur_score": 0.05,
+        "glare_detected": false,
+        "is_partial": false,
+        "resolution_w": 1920,
+        "resolution_h": 1080,
+        "is_sufficient_quality": true
+      },
+      "ground_truth": {
+        "is_tampered": false,
+        "expected_risk": "GREEN",
+        "tamper_details": {
+          "is_tampered": false,
+          "tamper_types": []
+        }
+      }
+    },
+    {
+      "sample_id": "CASE_002_TAMPERED",
+      "source_dataset": "synthetic",
+      "document_type": "PASSPORT",
+      "document_image": "datasets/synthetic/tampered/passport_002_dob_mod.png",
+      "secondary_document_image": "datasets/synthetic/tampered/visa_002.png",
+      "person_image": "datasets/synthetic/tampered/person_002.png",
+      "extracted_fields": {
+        "given_names": "ANITA",
+        "surname": "ROY",
+        "full_name": "ANITA ROY",
+        "dob": "1995-12-01",
+        "gender": "F",
+        "nationality": "IND",
+        "document_number": "K9876543",
+        "expiry_date": "2029-11-30",
+        "issuing_country": "IND",
+        "mrz_raw": "P<INDROY<<ANITA<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\nK9876543<8IND9012012F2911305<<<<<<<<<<<<<<04"
+      },
+      "quality_metadata": {
+        "blur_score": 0.08,
+        "glare_detected": false,
+        "is_partial": false,
+        "resolution_w": 1920,
+        "resolution_h": 1080,
+        "is_sufficient_quality": true
+      },
+      "ground_truth": {
+        "is_tampered": true,
+        "expected_risk": "RED",
+        "tamper_details": {
+          "is_tampered": true,
+          "tamper_types": ["dob_change", "mrz_checksum_mismatch", "photo_replace"],
+          "description": "Visual DOB field displays 1995-12-01 while MRZ encodes 1990-12-01. Facial embedding mismatch detected."
+        }
+      }
+    },
+    {
+      "sample_id": "CASE_003_UNCERTAIN",
+      "source_dataset": "synthetic",
+      "document_type": "PASSPORT",
+      "document_image": "datasets/synthetic/uncertain/passport_003_blurred.png",
+      "secondary_document_image": null,
+      "person_image": "datasets/synthetic/uncertain/person_003.png",
+      "extracted_fields": {
+        "given_names": "VIKRAM",
+        "surname": "S???",
+        "full_name": "VIKRAM S???",
+        "dob": "1980-??-??",
+        "gender": "M",
+        "nationality": "IND",
+        "document_number": "J55??89",
+        "expiry_date": "2027-??-??",
+        "issuing_country": "IND",
+        "mrz_raw": "P<IND<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\nUNREADABLE_MRZ_CHECKSUM_FAILED"
+      },
+      "quality_metadata": {
+        "blur_score": 0.78,
+        "glare_detected": true,
+        "is_partial": true,
+        "resolution_w": 640,
+        "resolution_h": 480,
+        "is_sufficient_quality": false,
+        "notes": "Severe motion blur and specular glare in MRZ zone."
+      },
+      "ground_truth": {
+        "is_tampered": false,
+        "expected_risk": "GREY",
+        "tamper_details": {
+          "is_tampered": false,
+          "tamper_types": [],
+          "description": "Insufficient optical clarity to establish visual or structural authenticity."
+        }
+      }
+    }
+  ]
+}
