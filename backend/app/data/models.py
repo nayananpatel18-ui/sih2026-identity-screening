@@ -279,6 +279,25 @@ class OfficerReviewResult(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# M15 AI Advisory Reasoning Output
+# ---------------------------------------------------------------------------
+
+class AIRiskReasoningResult(BaseModel):
+    """Advisory-only reasoning grounded in the supplied deterministic evidence."""
+    advisory: bool = True
+    provider: str = "deterministic-local"
+    reasoning_summary: str
+    key_risk_factors: List[str] = Field(default_factory=list)
+    supporting_evidence: List[str] = Field(default_factory=list)
+    uncertainty_factors: List[str] = Field(default_factory=list)
+    conflicting_evidence: List[str] = Field(default_factory=list)
+    recommended_verifications: List[str] = Field(default_factory=list)
+    confidence: float = Field(ge=0.0, le=1.0)
+    limitations: List[str] = Field(default_factory=list)
+    human_decision_required: bool = True
+
+
+# ---------------------------------------------------------------------------
 # Multimodal Screening Output
 # ---------------------------------------------------------------------------
 
@@ -316,4 +335,5 @@ class MultimodalScreeningResult(BaseModel):
     explanation: str = ""
     recommendation: str = ""
     officer_review: Optional[OfficerReviewResult] = None
+    ai_risk_reasoning: Optional[AIRiskReasoningResult] = Field(default=None, exclude_if=lambda value: value is None)
     pipeline_version: str = "synthetic-deterministic-v1"

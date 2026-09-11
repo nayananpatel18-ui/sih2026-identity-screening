@@ -24,6 +24,7 @@ class ScreeningRequest(BaseModel):
     enable_cross_document_consistency: bool = False
     enable_evidence_fusion: bool = False
     enable_officer_review: bool = False
+    enable_ai_risk_reasoning: bool = False
 
 
 @router.post("/screenings/run", response_model=MultimodalScreeningResult)
@@ -58,6 +59,7 @@ async def run_screening(request: ScreeningRequest, principal: AuthenticatedPrinc
         enable_cross_document_consistency=request.enable_cross_document_consistency,
         enable_evidence_fusion=request.enable_evidence_fusion,
         enable_officer_review=request.enable_officer_review,
+        enable_ai_risk_reasoning=request.enable_ai_risk_reasoning,
     )
 
     # Persist to Firestore or local fallback

@@ -22,6 +22,7 @@ from app.data.models import (
     MultimodalScreeningResult,
     OfficerReviewResult,
 )
+from app.services.ai_risk_reasoning import build_sanitized_reasoning_payload, get_ai_risk_reasoning_adapter
 from app.services.synthetic_extractor import extract_synthetic_evidence
 from app.services.ocr_adapter import extract_ocr_evidence
 from app.services.mrz_adapter import extract_mrz_evidence
@@ -49,6 +50,7 @@ def run_screening_pipeline(
     enable_cross_document_consistency: bool = False,
     enable_evidence_fusion: bool = False,
     enable_officer_review: bool = False,
+    enable_ai_risk_reasoning: bool = False,
     evaluation_signals: Optional[List[EvidenceSignal]] = None,
     evaluation_conflicts: Optional[List[ConflictItem]] = None,
 ) -> MultimodalScreeningResult:
@@ -130,6 +132,15 @@ def run_screening_pipeline(
             recommendation=recommendation,
         )
 
+    ai_risk_reasoning = None
+    if enable_ai_risk_reasoning:
+        payload = build_sanitized_reasoning_payload(
+            risk_level=risk_level, risk_score=risk_score, uncertainty_score=uncertainty_score,
+            signals=signals, conflicts=conflicts, extracted_fields=sample.extracted_fields,
+            recommendation=recommendation,
+        )
+        ai_risk_reasoning = get_ai_risk_reasoning_adapter().assess(payload)
+
     return MultimodalScreeningResult(
         screening_id=screening_id,
         sample_id=sample.sample_id,
@@ -144,5 +155,6 @@ def run_screening_pipeline(
         explanation=explanation,
         recommendation=recommendation,
         officer_review=officer_review,
+        ai_risk_reasoning=ai_risk_reasoning,
         pipeline_version="synthetic-deterministic-v1",
     )
