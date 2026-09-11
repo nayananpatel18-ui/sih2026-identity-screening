@@ -13,9 +13,12 @@ Architecture Note:
 
 import uuid
 from datetime import datetime
+from typing import List, Optional
 
 from app.data.models import (
     CanonicalDocumentSample,
+    ConflictItem,
+    EvidenceSignal,
     MultimodalScreeningResult,
     OfficerReviewResult,
 )
@@ -46,6 +49,8 @@ def run_screening_pipeline(
     enable_cross_document_consistency: bool = False,
     enable_evidence_fusion: bool = False,
     enable_officer_review: bool = False,
+    evaluation_signals: Optional[List[EvidenceSignal]] = None,
+    evaluation_conflicts: Optional[List[ConflictItem]] = None,
 ) -> MultimodalScreeningResult:
     """
     Runs the full screening pipeline for a canonical document sample.
@@ -55,6 +60,15 @@ def run_screening_pipeline(
 
     # Step 1: Extract modular evidence signals
     signals, conflicts, biometric_result = extract_synthetic_evidence(sample)
+
+    # M12 passes controlled synthetic adapter observations through this internal
+    # hook.  Normal API requests cannot supply these values, so M1-M11 behaviour
+    # remains unchanged.  The existing risk, uncertainty, fusion and review
+    # paths below remain the sole decision-support implementation.
+    if evaluation_signals:
+        signals.extend(evaluation_signals)
+    if evaluation_conflicts:
+        conflicts.extend(evaluation_conflicts)
 
     # OCR integration is opt-in so M4/M4.5's deterministic default remains intact.
     if enable_ocr:
