@@ -6,14 +6,20 @@ import { ScreeningHistoryPage } from './pages/ScreeningHistoryPage';
 import { EvidenceExplanationPage } from './pages/EvidenceExplanationPage';
 import { FraudLabPage } from './pages/FraudLabPage';
 import { SystemStatusPage } from './pages/SystemStatusPage';
+import { AuthPanel } from './components/AuthPanel';
+import { useAuth } from './auth/AuthContext';
 import { api } from './services/api';
 import { HealthStatus, CanonicalDocumentSample, MultimodalScreeningResult } from './types';
 
 export const App: React.FC = () => {
+  const { user, loading: authLoading, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<NavTab>('new-screening');
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [loadingHealth, setLoadingHealth] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [showAuth, setShowAuth] = useState<boolean>(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [loggingOut, setLoggingOut] = useState<boolean>(false);
 
   // Data inspector state
   const [sampleIds, setSampleIds] = useState<string[]>([]);
@@ -73,18 +79,34 @@ export const App: React.FC = () => {
     }
   }, [selectedSampleId]);
 
+  useEffect(() => {
+    if (user) setShowAuth(false);
+  }, [user]);
+
   const handleStartScreening = async (sampleId: string) => {
-    try {
-      const result = await api.runScreening(sampleId, 'synthetic');
-      setActiveScreeningResult(result);
-      setActiveTab('evidence');
-    } catch (err) {
-      console.error(`Failed to run screening for ${sampleId}:`, err);
-    }
+    const result = await api.runScreening(sampleId, 'synthetic');
+    setActiveScreeningResult(result);
+    setActiveTab('evidence');
   };
 
   const handleSelectHistoryScreening = async (sampleId: string) => {
+    if (!user) {
+      setShowAuth(true);
+      return;
+    }
     await handleStartScreening(sampleId);
+  };
+
+  const handleLogout = async () => {
+    setAuthError(null);
+    setLoggingOut(true);
+    try {
+      await logout();
+    } catch {
+      setAuthError('Unable to sign out. Please try again.');
+    } finally {
+      setLoggingOut(false);
+    }
   };
 
   return (
@@ -95,14 +117,28 @@ export const App: React.FC = () => {
       {/* Main Content Area */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {/* Header */}
-        <Header activeTab={activeTab} health={health} onRefresh={fetchHealth} isRefreshing={isRefreshing} />
+        <Header
+          activeTab={activeTab}
+          health={health}
+          onRefresh={fetchHealth}
+          isRefreshing={isRefreshing}
+          userEmail={user?.email ?? null}
+          authLoading={authLoading || loggingOut}
+          authError={authError}
+          onOpenAuth={() => setShowAuth(true)}
+          onLogout={() => { void handleLogout(); }}
+        />
 
         {/* Dynamic Page Container */}
         <main style={{ flex: 1, padding: '24px 28px', maxWidth: '1600px', width: '100%', boxSizing: 'border-box' }}>
-          {activeTab === 'new-screening' && (
+          {showAuth ? (
+            <AuthPanel onCancel={() => setShowAuth(false)} />
+          ) : activeTab === 'new-screening' && (
             <NewScreeningPage
               onLoadPreset={fetchSampleDetails}
               onStartScreening={handleStartScreening}
+              isAuthenticated={Boolean(user)}
+              onRequireAuthentication={() => setShowAuth(true)}
             />
           )}
 

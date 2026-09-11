@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { Upload, FileText, User, Play, AlertCircle, CheckCircle2, HelpCircle, Info, ShieldAlert } from 'lucide-react';
-import { api } from '../services/api';
+import { api, getApiErrorMessage } from '../services/api';
 import { CanonicalDocumentSample, UploadFileResponse } from '../types';
 
 interface NewScreeningPageProps {
   onLoadPreset: (sampleId: string) => Promise<CanonicalDocumentSample | null>;
   onStartScreening: (sampleId: string) => Promise<void>;
+  isAuthenticated: boolean;
+  onRequireAuthentication: () => void;
 }
 
-export const NewScreeningPage: React.FC<NewScreeningPageProps> = ({ onLoadPreset, onStartScreening }) => {
+export const NewScreeningPage: React.FC<NewScreeningPageProps> = ({ onLoadPreset, onStartScreening, isAuthenticated, onRequireAuthentication }) => {
   const [selectedPresetId, setSelectedPresetId] = useState<string>('CASE_001_GENUINE');
   const [activeSample, setActiveSample] = useState<CanonicalDocumentSample | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -16,6 +18,7 @@ export const NewScreeningPage: React.FC<NewScreeningPageProps> = ({ onLoadPreset
   const [uploading, setUploading] = useState<boolean>(false);
   const [uploadResult, setUploadResult] = useState<UploadFileResponse | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [screeningError, setScreeningError] = useState<string | null>(null);
 
   const handleSelectPreset = async (presetId: string) => {
     setSelectedPresetId(presetId);
@@ -33,6 +36,10 @@ export const NewScreeningPage: React.FC<NewScreeningPageProps> = ({ onLoadPreset
     if (!selectedUploadFile) {
       return;
     }
+    if (!isAuthenticated) {
+      onRequireAuthentication();
+      return;
+    }
 
     setUploading(true);
     setUploadError(null);
@@ -40,11 +47,24 @@ export const NewScreeningPage: React.FC<NewScreeningPageProps> = ({ onLoadPreset
     try {
       const result = await api.uploadFile(selectedUploadFile, 'primary_document');
       setUploadResult(result);
-    } catch (err: any) {
-      setUploadError(err?.response?.data?.detail || 'Upload failed. Please choose a valid image file.');
+    } catch (err: unknown) {
+      setUploadError(getApiErrorMessage(err, 'Upload failed. Please choose a valid image file.'));
       setUploadResult(null);
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleStartScreening = async () => {
+    if (!isAuthenticated) {
+      onRequireAuthentication();
+      return;
+    }
+    setScreeningError(null);
+    try {
+      await onStartScreening(selectedPresetId);
+    } catch (err: unknown) {
+      setScreeningError(getApiErrorMessage(err, 'Screening could not be started.'));
     }
   };
 
@@ -324,7 +344,7 @@ export const NewScreeningPage: React.FC<NewScreeningPageProps> = ({ onLoadPreset
         </div>
 
         <button
-          onClick={() => onStartScreening(selectedPresetId)}
+          onClick={handleStartScreening}
           disabled={isLoading || !activeSample}
           style={{
             backgroundColor: '#2563eb',
@@ -344,6 +364,7 @@ export const NewScreeningPage: React.FC<NewScreeningPageProps> = ({ onLoadPreset
           <Play size={16} /> [DEMO] Inspect Evidence & Explanation
         </button>
       </div>
+      {screeningError && <div style={{ color: '#fca5a5', fontSize: '12px', display: 'flex', gap: '8px' }}><ShieldAlert size={14} />{screeningError}</div>}
     </div>
   );
 };

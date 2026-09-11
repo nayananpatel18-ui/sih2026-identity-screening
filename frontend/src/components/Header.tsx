@@ -1,6 +1,6 @@
 import React from 'react';
 import { HealthStatus } from '../types';
-import { RefreshCw, Server, Database, UserCheck } from 'lucide-react';
+import { RefreshCw, Server, Database, UserCheck, LogOut, LogIn } from 'lucide-react';
 import { NavTab } from './Sidebar';
 
 interface HeaderProps {
@@ -8,9 +8,14 @@ interface HeaderProps {
   health: HealthStatus | null;
   onRefresh: () => void;
   isRefreshing: boolean;
+  userEmail: string | null;
+  authLoading: boolean;
+  authError: string | null;
+  onOpenAuth: () => void;
+  onLogout: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ activeTab, health, onRefresh, isRefreshing }) => {
+export const Header: React.FC<HeaderProps> = ({ activeTab, health, onRefresh, isRefreshing, userEmail, authLoading, authError, onOpenAuth, onLogout }) => {
   const titleMap: Record<NavTab, { title: string; subtitle: string }> = {
     'new-screening': {
       title: 'New Screening Intake',
@@ -55,6 +60,16 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, health, onRefresh, is
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+        <button
+          onClick={userEmail ? onLogout : onOpenAuth}
+          disabled={authLoading}
+          style={{ backgroundColor: '#1e293b', border: '1px solid #334155', color: userEmail ? '#a7f3d0' : '#93c5fd', padding: '7px 10px', borderRadius: '6px', cursor: authLoading ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}
+          title={userEmail ? 'Sign out' : 'Sign in'}
+        >
+          {userEmail ? <LogOut size={13} /> : <LogIn size={13} />}
+          {authLoading ? 'Checking account…' : userEmail || 'Sign in'}
+        </button>
+        {authError && <span role="alert" style={{ color: '#fca5a5', fontSize: '11px', maxWidth: '180px' }}>{authError}</span>}
         {/* Officer Status Badge */}
         <div style={{
           display: 'flex',
