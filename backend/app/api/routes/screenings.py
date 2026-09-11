@@ -17,6 +17,8 @@ class ScreeningRequest(BaseModel):
     sample_id: str
     dataset: str = "synthetic"
     enable_ocr: bool = False
+    enable_mrz: bool = False
+    enable_visual_forensics: bool = False
 
 
 @router.post("/screenings/run", response_model=MultimodalScreeningResult)
@@ -42,7 +44,12 @@ async def run_screening(request: ScreeningRequest):
             detail=f"Sample '{request.sample_id}' not found in dataset '{request.dataset}'."
         )
 
-    result = run_screening_pipeline(sample, enable_ocr=request.enable_ocr)
+    result = run_screening_pipeline(
+        sample,
+        enable_ocr=request.enable_ocr,
+        enable_mrz=request.enable_mrz,
+        enable_visual_forensics=request.enable_visual_forensics,
+    )
 
     # Persist to Firestore or local fallback
     FirestoreRepository.save_screening(result.screening_id, result.model_dump())

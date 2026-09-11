@@ -20,7 +20,7 @@
         "document_number": "Z1234567",
         "expiry_date": "2031-05-13",
         "issuing_country": "IND",
-        "mrz_raw": "P<INDSHARMA<<RAJESH<KUMAR<<<<<<<<<<<<<<<<<<<\nZ1234567<4IND8805142M3105137<<<<<<<<<<<<<<02"
+        "mrz_raw": "P<INDSHARMA<<RAJESH<KUMAR<<<<<<<<<<<<<<<<<<<\nZ1234567<1IND8805142M3105135<<<<<<<<<<<<<<06"
       },
       "quality_metadata": {
         "blur_score": 0.05,

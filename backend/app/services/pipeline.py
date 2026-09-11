@@ -20,6 +20,8 @@ from app.data.models import (
 )
 from app.services.synthetic_extractor import extract_synthetic_evidence
 from app.services.ocr_adapter import extract_ocr_evidence
+from app.services.mrz_adapter import extract_mrz_evidence
+from app.services.visual_forensics_adapter import extract_visual_forensics_evidence
 from app.services.risk_engine import (
     compute_uncertainty_score,
     compute_risk_score,
@@ -33,6 +35,8 @@ def run_screening_pipeline(
     sample: CanonicalDocumentSample,
     *,
     enable_ocr: bool = False,
+    enable_mrz: bool = False,
+    enable_visual_forensics: bool = False,
 ) -> MultimodalScreeningResult:
     """
     Runs the full screening pipeline for a canonical document sample.
@@ -46,6 +50,14 @@ def run_screening_pipeline(
     # OCR integration is opt-in so M4/M4.5's deterministic default remains intact.
     if enable_ocr:
         signals.extend(extract_ocr_evidence(sample))
+
+    # MRZ validation is opt-in and does not alter M4/M5 defaults or risk weighting.
+    if enable_mrz:
+        signals.extend(extract_mrz_evidence(sample))
+
+    # Basic visual analysis is opt-in and emits supporting, zero-risk evidence only.
+    if enable_visual_forensics:
+        signals.extend(extract_visual_forensics_evidence(sample))
 
     # Step 2: Evaluate uncertainty from quality + signal reliability
     uncertainty_score = compute_uncertainty_score(
