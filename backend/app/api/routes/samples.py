@@ -5,7 +5,7 @@ Canonical Data Adapter Samples API Route.
 from fastapi import APIRouter, HTTPException, Query
 from typing import List, Optional
 from app.data.base import DatasetRegistry
-from app.data.models import CanonicalDocumentSample
+from app.data.models import OfficerFacingDocumentSample
 
 router = APIRouter()
 
@@ -18,7 +18,7 @@ async def list_dataset_samples(dataset: str = Query("synthetic", description="Na
     return adapter.list_samples()
 
 
-@router.get("/samples/{sample_id}", response_model=CanonicalDocumentSample)
+@router.get("/samples/{sample_id}", response_model=OfficerFacingDocumentSample)
 async def get_canonical_sample(sample_id: str, dataset: str = Query("synthetic")):
     adapter = DatasetRegistry.get(dataset)
     if not adapter:
@@ -31,4 +31,6 @@ async def get_canonical_sample(sample_id: str, dataset: str = Query("synthetic")
     
     if not sample:
         raise HTTPException(status_code=404, detail=f"Sample '{sample_id}' not found in dataset '{dataset}'.")
-    return sample
+    # Ground truth is internal evaluation metadata and must never cross the
+    # officer-facing API boundary.
+    return OfficerFacingDocumentSample(**sample.model_dump(exclude={"ground_truth"}))

@@ -6,7 +6,7 @@ SIH 2026 — AI-Powered Identity Screening & Fraud Resilience System.
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api.routes import health, samples
+from app.api.routes import health, samples, upload, screenings
 from app.services.firebase_service import init_firebase
 import app.data.synthetic_adapter  # Ensures synthetic adapter auto-registers
 
@@ -44,6 +44,8 @@ async def root():
 # Register API Routers
 app.include_router(health.router, prefix=settings.API_V1_STR, tags=["Health"])
 app.include_router(samples.router, prefix=settings.API_V1_STR, tags=["Data Adapters"])
+app.include_router(upload.router, prefix=settings.API_V1_STR, tags=["Document Upload"])
+app.include_router(screenings.router, prefix=settings.API_V1_STR, tags=["Screening Pipeline"])
 
 
 if __name__ == "__main__":

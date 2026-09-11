@@ -22,7 +22,11 @@ class Settings(BaseSettings):
     
     # Dataset paths
     SYNTHETIC_DATASET_PATH: str = "datasets/synthetic/manifest.json"
-    
+
+    # Upload settings (demo-safe local storage)
+    UPLOAD_MAX_BYTES: int = 5 * 1024 * 1024
+    ALLOWED_UPLOAD_EXTENSIONS: List[str] = ["png", "jpg", "jpeg", "webp"]
+
     # Firebase settings (Optional fallback)
     FIREBASE_PROJECT_ID: str = "sih2026-identity-screening"
     FIREBASE_CREDENTIALS_PATH: str = "backend/firebase-credentials.json"

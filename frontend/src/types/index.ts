@@ -1,4 +1,9 @@
 export type RiskLevel = 'GREEN' | 'AMBER' | 'RED' | 'GREY';
+export type EvidenceState = 'POSITIVE' | 'NEGATIVE' | 'MISSING' | 'UNAVAILABLE' | 'UNRELIABLE' | 'NOT_APPLICABLE';
+export type SignalCategory = 'DOCUMENT_INTELLIGENCE' | 'STRUCTURAL_VALIDATION' | 'VISUAL_FORENSIC' | 'BIOMETRIC_VERIFICATION' | 'CROSS_DOCUMENT_CONSISTENCY';
+export type SignalSeverity = 'INFO' | 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+export type ConflictType = 'ACTUAL_CONTRADICTION' | 'UNREADABLE_EVIDENCE' | 'UNRELIABLE_EVIDENCE' | 'MISSING_EVIDENCE';
+export type BiometricMatchResult = 'MATCH' | 'MISMATCH' | 'INCONCLUSIVE' | 'UNAVAILABLE';
 
 export interface QualityMetadata {
   blur_score: number;
@@ -25,16 +30,6 @@ export interface CanonicalExtractedFields {
   raw_ocr_text?: string;
 }
 
-export interface GroundTruthMetadata {
-  is_tampered: boolean;
-  expected_risk: RiskLevel;
-  tamper_details?: {
-    is_tampered: boolean;
-    tamper_types: string[];
-    description?: string;
-  };
-}
-
 export interface CanonicalDocumentSample {
   sample_id: string;
   source_dataset: string;
@@ -44,8 +39,65 @@ export interface CanonicalDocumentSample {
   person_image?: string;
   extracted_fields?: CanonicalExtractedFields;
   quality_metadata: QualityMetadata;
-  ground_truth?: GroundTruthMetadata;
   created_at: string;
+}
+
+export interface EvidenceSignal {
+  signal_id: string;
+  source: string;
+  category: SignalCategory;
+  evidence_state: EvidenceState;
+  severity: SignalSeverity;
+  title: string;
+  description: string;
+  confidence: number;
+  contribution: number;
+  limitation?: string;
+  raw_details: Record<string, unknown>;
+}
+
+export interface ConflictItem {
+  conflict_id: string;
+  source_a: string;
+  source_b: string;
+  field_name: string;
+  value_a?: string;
+  value_b?: string;
+  conflict_type: ConflictType;
+  severity: SignalSeverity;
+  confidence: number;
+  impact: number;
+  resolvable: boolean;
+  resolution_status: string;
+  explanation: string;
+}
+
+export interface MultimodalScreeningResult {
+  screening_id: string;
+  sample_id: string;
+  created_at: string;
+  status: string;
+  risk_level: RiskLevel;
+  risk_score: number;
+  uncertainty_score: number;
+  extracted_fields?: CanonicalExtractedFields;
+  quality_metadata: QualityMetadata;
+  evidence_signals: EvidenceSignal[];
+  conflicts: ConflictItem[];
+  biometric_result: BiometricMatchResult;
+  explanation: string;
+  recommendation: string;
+  pipeline_version: string;
+}
+
+export interface UploadFileResponse {
+  file_id: string;
+  upload_session_id?: string;
+  doc_type?: string;
+  original_filename: string;
+  size_bytes: number;
+  content_type: string;
+  status: string;
 }
 
 export interface HealthStatus {
