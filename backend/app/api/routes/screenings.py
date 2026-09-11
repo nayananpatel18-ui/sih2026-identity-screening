@@ -20,6 +20,7 @@ class ScreeningRequest(BaseModel):
     enable_mrz: bool = False
     enable_visual_forensics: bool = False
     enable_biometric_verification: bool = False
+    enable_cross_document_consistency: bool = False
 
 
 @router.post("/screenings/run", response_model=MultimodalScreeningResult)
@@ -51,6 +52,7 @@ async def run_screening(request: ScreeningRequest):
         enable_mrz=request.enable_mrz,
         enable_visual_forensics=request.enable_visual_forensics,
         enable_biometric_verification=request.enable_biometric_verification,
+        enable_cross_document_consistency=request.enable_cross_document_consistency,
     )
 
     # Persist to Firestore or local fallback

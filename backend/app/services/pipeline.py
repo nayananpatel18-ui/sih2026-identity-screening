@@ -23,6 +23,7 @@ from app.services.ocr_adapter import extract_ocr_evidence
 from app.services.mrz_adapter import extract_mrz_evidence
 from app.services.visual_forensics_adapter import extract_visual_forensics_evidence
 from app.services.biometric_adapter import extract_biometric_evidence
+from app.services.cross_document_consistency import extract_cross_document_evidence
 from app.services.risk_engine import (
     compute_uncertainty_score,
     compute_risk_score,
@@ -39,6 +40,7 @@ def run_screening_pipeline(
     enable_mrz: bool = False,
     enable_visual_forensics: bool = False,
     enable_biometric_verification: bool = False,
+    enable_cross_document_consistency: bool = False,
 ) -> MultimodalScreeningResult:
     """
     Runs the full screening pipeline for a canonical document sample.
@@ -64,6 +66,12 @@ def run_screening_pipeline(
     # M8 remains opt-in; its fallback produces zero-risk supporting evidence only.
     if enable_biometric_verification:
         signals.extend(extract_biometric_evidence(sample))
+
+    # M9 compares only explicitly supplied structured fields and is opt-in.
+    if enable_cross_document_consistency:
+        cross_document_signals, cross_document_conflicts = extract_cross_document_evidence(sample)
+        signals.extend(cross_document_signals)
+        conflicts.extend(cross_document_conflicts)
 
     # Step 2: Evaluate uncertainty from quality + signal reliability
     uncertainty_score = compute_uncertainty_score(

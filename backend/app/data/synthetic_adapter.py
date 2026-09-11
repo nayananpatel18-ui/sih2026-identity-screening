@@ -79,7 +79,8 @@ class SyntheticDataAdapter(BaseDataAdapter):
             person_image=item.get("person_image"),
             extracted_fields=ext_fields,
             quality_metadata=qual_metadata,
-            ground_truth=gt_metadata
+            ground_truth=gt_metadata,
+            additional_metadata=item.get("additional_metadata", {}),
         )
 
     def list_samples(self) -> List[str]:

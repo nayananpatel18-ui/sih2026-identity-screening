@@ -30,6 +30,27 @@
         "resolution_h": 1080,
         "is_sufficient_quality": true
       },
+      "additional_metadata": {
+        "comparison_documents": [
+          {
+            "document_id": "VISA_001",
+            "document_type": "VISA",
+            "extracted_fields": {
+              "full_name": "SHARMA, RAJESH KUMAR",
+              "dob": "14-05-1988",
+              "nationality": "ind",
+              "gender": "M",
+              "document_number": "VISA-001"
+            },
+            "field_confidence": {
+              "full_name": 0.95,
+              "dob": 0.95,
+              "nationality": 0.95,
+              "gender": 0.95
+            }
+          }
+        ]
+      },
       "ground_truth": {
         "is_tampered": false,
         "expected_risk": "GREEN",
@@ -65,6 +86,27 @@
         "resolution_w": 1920,
         "resolution_h": 1080,
         "is_sufficient_quality": true
+      },
+      "additional_metadata": {
+        "comparison_documents": [
+          {
+            "document_id": "VISA_002",
+            "document_type": "VISA",
+            "extracted_fields": {
+              "full_name": "ROY, ANITA",
+              "dob": "01/12/1990",
+              "nationality": "IND",
+              "gender": "F",
+              "document_number": "VISA-002"
+            },
+            "field_confidence": {
+              "full_name": 0.95,
+              "dob": 0.95,
+              "nationality": 0.95,
+              "gender": 0.95
+            }
+          }
+        ]
       },
       "ground_truth": {
         "is_tampered": true,
