@@ -24,6 +24,7 @@ from app.services.mrz_adapter import extract_mrz_evidence
 from app.services.visual_forensics_adapter import extract_visual_forensics_evidence
 from app.services.biometric_adapter import extract_biometric_evidence
 from app.services.cross_document_consistency import extract_cross_document_evidence
+from app.services.evidence_fusion import MultimodalEvidenceFusionEngine, fusion_evidence_signal
 from app.services.risk_engine import (
     compute_uncertainty_score,
     compute_risk_score,
@@ -41,6 +42,7 @@ def run_screening_pipeline(
     enable_visual_forensics: bool = False,
     enable_biometric_verification: bool = False,
     enable_cross_document_consistency: bool = False,
+    enable_evidence_fusion: bool = False,
 ) -> MultimodalScreeningResult:
     """
     Runs the full screening pipeline for a canonical document sample.
@@ -73,18 +75,18 @@ def run_screening_pipeline(
         signals.extend(cross_document_signals)
         conflicts.extend(cross_document_conflicts)
 
-    # Step 2: Evaluate uncertainty from quality + signal reliability
-    uncertainty_score = compute_uncertainty_score(
-        sample.quality_metadata,
-        signals,
-        conflicts,
-    )
-
-    # Step 3: Evaluate risk from NEGATIVE signals and ACTUAL_CONTRADICTION conflicts
-    risk_score = compute_risk_score(signals, conflicts)
-
-    # Step 4: Determine four-state outcome (GREY takes precedence)
-    risk_level = determine_risk_level(risk_score, uncertainty_score)
+    # Step 2: M10 optionally summarizes existing evidence using the established
+    # risk/uncertainty functions. The summary has zero contribution of its own.
+    if enable_evidence_fusion:
+        fusion_result = MultimodalEvidenceFusionEngine().fuse(signals, conflicts, sample.quality_metadata)
+        risk_score = fusion_result.risk_score
+        uncertainty_score = fusion_result.uncertainty_score
+        risk_level = fusion_result.risk_level
+        signals.append(fusion_evidence_signal(fusion_result))
+    else:
+        uncertainty_score = compute_uncertainty_score(sample.quality_metadata, signals, conflicts)
+        risk_score = compute_risk_score(signals, conflicts)
+        risk_level = determine_risk_level(risk_score, uncertainty_score)
 
     # Step 5: Generate explanation text grounded in evidence signals
     explanation = generate_explanation(
