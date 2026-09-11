@@ -97,5 +97,6 @@ Frontend UI available at: `http://localhost:5173`
 
 ## 🔒 Technical & Ethical Honesty
 - **No Direct Government System Access**: Operating on synthetic/de-identified demo documents.
+- **Opt-in OCR Demo Boundary**: `enable_ocr` uses a deterministic synthetic-fixture fallback when local Tesseract is unavailable. It is demo/testing-only, not real-world document verification; uploaded files are not connected to a full real multimodal pipeline.
 - **Decision Assist Only**: AI generates structured risk & evidence; final action remains with the officer.
 - **Low Quality ≠ Fraud**: Insufficient image quality results in `GREY` (Human Review Required), avoiding false accusations.

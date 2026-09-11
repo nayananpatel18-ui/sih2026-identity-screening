@@ -19,6 +19,7 @@ from app.data.models import (
     MultimodalScreeningResult,
 )
 from app.services.synthetic_extractor import extract_synthetic_evidence
+from app.services.ocr_adapter import extract_ocr_evidence
 from app.services.risk_engine import (
     compute_uncertainty_score,
     compute_risk_score,
@@ -28,7 +29,11 @@ from app.services.risk_engine import (
 from app.services.explanation_engine import generate_explanation
 
 
-def run_screening_pipeline(sample: CanonicalDocumentSample) -> MultimodalScreeningResult:
+def run_screening_pipeline(
+    sample: CanonicalDocumentSample,
+    *,
+    enable_ocr: bool = False,
+) -> MultimodalScreeningResult:
     """
     Runs the full screening pipeline for a canonical document sample.
     Returns a MultimodalScreeningResult with evidence, conflicts, risk, and explanation.
@@ -37,6 +42,10 @@ def run_screening_pipeline(sample: CanonicalDocumentSample) -> MultimodalScreeni
 
     # Step 1: Extract modular evidence signals
     signals, conflicts, biometric_result = extract_synthetic_evidence(sample)
+
+    # OCR integration is opt-in so M4/M4.5's deterministic default remains intact.
+    if enable_ocr:
+        signals.extend(extract_ocr_evidence(sample))
 
     # Step 2: Evaluate uncertainty from quality + signal reliability
     uncertainty_score = compute_uncertainty_score(

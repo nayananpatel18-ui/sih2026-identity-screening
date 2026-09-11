@@ -16,6 +16,7 @@ router = APIRouter()
 class ScreeningRequest(BaseModel):
     sample_id: str
     dataset: str = "synthetic"
+    enable_ocr: bool = False
 
 
 @router.post("/screenings/run", response_model=MultimodalScreeningResult)
@@ -41,7 +42,7 @@ async def run_screening(request: ScreeningRequest):
             detail=f"Sample '{request.sample_id}' not found in dataset '{request.dataset}'."
         )
 
-    result = run_screening_pipeline(sample)
+    result = run_screening_pipeline(sample, enable_ocr=request.enable_ocr)
 
     # Persist to Firestore or local fallback
     FirestoreRepository.save_screening(result.screening_id, result.model_dump())
