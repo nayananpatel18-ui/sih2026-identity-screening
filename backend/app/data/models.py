@@ -233,6 +233,52 @@ class OfficerFacingDocumentSample(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Officer Review Output
+# ---------------------------------------------------------------------------
+
+class OfficerReviewFinding(BaseModel):
+    signal_id: str
+    source: str
+    category: SignalCategory
+    title: str
+    description: str
+    severity: SignalSeverity
+    confidence: float = Field(ge=0.0, le=1.0)
+    contribution: float = Field(ge=0.0, le=1.0)
+
+
+class OfficerReviewConflict(BaseModel):
+    conflict_id: str
+    field_name: str
+    source_a: str
+    source_b: str
+    value_a: Optional[str] = None
+    value_b: Optional[str] = None
+    severity: SignalSeverity
+    confidence: float = Field(ge=0.0, le=1.0)
+    impact: float = Field(ge=0.0, le=1.0)
+    resolution_status: str
+    explanation: str
+
+
+class OfficerReviewResult(BaseModel):
+    screening_id: str
+    risk_level: RiskLevel
+    risk_score: float = Field(ge=0.0, le=1.0)
+    uncertainty_score: float = Field(ge=0.0, le=1.0)
+    overall_assessment: str
+    evidence_summary: Dict[str, Any] = Field(default_factory=dict)
+    key_positive_findings: List[OfficerReviewFinding] = Field(default_factory=list)
+    key_suspicious_findings: List[OfficerReviewFinding] = Field(default_factory=list)
+    conflicts: List[OfficerReviewConflict] = Field(default_factory=list)
+    uncertainty_reasons: List[str] = Field(default_factory=list)
+    recommended_verifications: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)
+    recommendation: str
+    human_decision_required: bool = True
+
+
+# ---------------------------------------------------------------------------
 # Multimodal Screening Output
 # ---------------------------------------------------------------------------
 
@@ -269,4 +315,5 @@ class MultimodalScreeningResult(BaseModel):
 
     explanation: str = ""
     recommendation: str = ""
+    officer_review: Optional[OfficerReviewResult] = None
     pipeline_version: str = "synthetic-deterministic-v1"

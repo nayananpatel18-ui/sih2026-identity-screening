@@ -17,6 +17,7 @@ from datetime import datetime
 from app.data.models import (
     CanonicalDocumentSample,
     MultimodalScreeningResult,
+    OfficerReviewResult,
 )
 from app.services.synthetic_extractor import extract_synthetic_evidence
 from app.services.ocr_adapter import extract_ocr_evidence
@@ -32,6 +33,7 @@ from app.services.risk_engine import (
     get_recommendation,
 )
 from app.services.explanation_engine import generate_explanation
+from app.services.officer_review import OfficerReviewService
 
 
 def run_screening_pipeline(
@@ -43,6 +45,7 @@ def run_screening_pipeline(
     enable_biometric_verification: bool = False,
     enable_cross_document_consistency: bool = False,
     enable_evidence_fusion: bool = False,
+    enable_officer_review: bool = False,
 ) -> MultimodalScreeningResult:
     """
     Runs the full screening pipeline for a canonical document sample.
@@ -101,6 +104,18 @@ def run_screening_pipeline(
     # Step 6: Get cautious decision-support recommendation
     recommendation = get_recommendation(risk_level)
 
+    officer_review: OfficerReviewResult | None = None
+    if enable_officer_review:
+        officer_review = OfficerReviewService().build(
+            screening_id=screening_id,
+            risk_level=risk_level,
+            risk_score=risk_score,
+            uncertainty_score=uncertainty_score,
+            signals=signals,
+            conflicts=conflicts,
+            recommendation=recommendation,
+        )
+
     return MultimodalScreeningResult(
         screening_id=screening_id,
         sample_id=sample.sample_id,
@@ -114,5 +129,6 @@ def run_screening_pipeline(
         biometric_result=biometric_result,
         explanation=explanation,
         recommendation=recommendation,
+        officer_review=officer_review,
         pipeline_version="synthetic-deterministic-v1",
     )
