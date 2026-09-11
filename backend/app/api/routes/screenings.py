@@ -3,12 +3,13 @@ Screenings API Route.
 POST /api/screenings/run — Runs the full screening pipeline for a named synthetic sample.
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from app.data.base import DatasetRegistry
 from app.data.models import MultimodalScreeningResult
 from app.services.pipeline import run_screening_pipeline
 from app.services.firebase_service import FirestoreRepository
+from app.api.dependencies.auth import AuthenticatedPrincipal, require_authenticated_principal
 
 router = APIRouter()
 
@@ -26,7 +27,7 @@ class ScreeningRequest(BaseModel):
 
 
 @router.post("/screenings/run", response_model=MultimodalScreeningResult)
-async def run_screening(request: ScreeningRequest):
+async def run_screening(request: ScreeningRequest, principal: AuthenticatedPrincipal = Depends(require_authenticated_principal)):
     """
     Runs the end-to-end screening pipeline for a named canonical document sample.
     Returns the full MultimodalScreeningResult including evidence signals,
@@ -60,6 +61,6 @@ async def run_screening(request: ScreeningRequest):
     )
 
     # Persist to Firestore or local fallback
-    FirestoreRepository.save_screening(result.screening_id, result.model_dump())
+    FirestoreRepository.save_screening(result.screening_id, result.model_dump(), principal.uid)
 
     return result

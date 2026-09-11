@@ -9,10 +9,12 @@ import os
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from PIL import Image, UnidentifiedImageError
 
 from app.core.config import settings
+from app.api.dependencies.auth import AuthenticatedPrincipal, require_authenticated_principal
+from app.services.firebase_service import FirebaseStorageService, FirestoreRepository
 
 router = APIRouter()
 
@@ -106,31 +108,36 @@ def _validate_image_file(file: UploadFile, contents: bytes) -> tuple[str, str]:
 @router.post("/upload")
 async def upload_document(
     file: UploadFile = File(...),
-    doc_type: str = "primary_document"
+    doc_type: str = "primary_document",
+    principal: AuthenticatedPrincipal = Depends(require_authenticated_principal),
 ):
     """
     Accepts an uploaded image file and stores it temporarily for local demo use.
     The upload is intentionally limited to demo-safe image types and does not perform
     OCR, biometric verification, or external analysis.
     """
-    _ensure_upload_dir()
-
     contents = await file.read()
     image_format, detected_content_type = _validate_image_file(file, contents)
 
     file_id = str(uuid.uuid4())
     filename = f"{file_id}.{image_format if image_format != 'jpeg' else 'jpg'}"
-    save_path = Path(TEMP_UPLOAD_DIR) / filename
-
-    with save_path.open("wb") as destination:
-        destination.write(contents)
+    try:
+        storage_reference = FirebaseStorageService.upload(user_id=principal.uid, upload_id=file_id, filename=filename, content_type=detected_content_type, contents=contents)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    metadata = FirestoreRepository.save_upload(file_id, {
+        "original_filename": _sanitize_filename(file.filename), "content_type": detected_content_type,
+        "size_bytes": len(contents), "doc_type": doc_type, "status": "UPLOADED",
+        "screening_id": None, **storage_reference,
+    }, principal.uid)
 
     return {
-        "file_id": file_id,
+        "file_id": metadata["upload_id"],
         "upload_session_id": file_id,
         "doc_type": doc_type,
         "original_filename": _sanitize_filename(file.filename),
         "size_bytes": len(contents),
         "content_type": detected_content_type,
         "status": "UPLOADED",
+        "storage_provider": storage_reference["storage_provider"],
     }

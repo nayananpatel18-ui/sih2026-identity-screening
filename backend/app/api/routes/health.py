@@ -3,7 +3,7 @@ Health and Status API Route.
 """
 
 from fastapi import APIRouter
-from app.services.firebase_service import FirestoreRepository
+from app.services.firebase_service import FirestoreRepository, firebase_status
 from app.data.base import DatasetRegistry
 from datetime import datetime
 
@@ -18,6 +18,7 @@ async def health_check():
         "service": "SIH 2026 AI-Powered Identity Screening Backend",
         "timestamp": datetime.utcnow().isoformat(),
         "firebase_connected": FirestoreRepository.is_connected(),
+        "firebase": firebase_status(),
         "active_datasets": DatasetRegistry.list_datasets(),
         "version": "1.0.0"
     }

@@ -27,10 +27,13 @@ class Settings(BaseSettings):
     UPLOAD_MAX_BYTES: int = 5 * 1024 * 1024
     ALLOWED_UPLOAD_EXTENSIONS: List[str] = ["png", "jpg", "jpeg", "webp"]
 
-    # Firebase settings (Optional fallback)
-    FIREBASE_PROJECT_ID: str = "sih2026-identity-screening"
-    FIREBASE_CREDENTIALS_PATH: str = "backend/firebase-credentials.json"
-    FIREBASE_EMULATOR: bool = True
+    # Missing Admin credentials means explicit LOCAL fallback, never a fake identity.
+    FIREBASE_PROJECT_ID: str | None = None
+    FIREBASE_CREDENTIALS_PATH: str | None = None
+    FIREBASE_USE_APPLICATION_DEFAULT: bool = False
+    FIREBASE_STORAGE_BUCKET: str | None = None
+    FIREBASE_LOCAL_FALLBACK: bool = True
+    FIREBASE_EMULATOR: bool = False
     
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

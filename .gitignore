@@ -26,6 +26,8 @@ build/
 *.key
 firebase-key.json
 serviceAccountKey.json
+firebase-credentials.json
+backend/firebase-credentials.json
 
 # Operating System & IDEs
 .DS_Store
