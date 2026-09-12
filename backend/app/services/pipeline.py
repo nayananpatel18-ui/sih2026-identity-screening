@@ -22,7 +22,11 @@ from app.data.models import (
     MultimodalScreeningResult,
     OfficerReviewResult,
 )
-from app.services.ai_risk_reasoning import build_sanitized_reasoning_payload, get_ai_risk_reasoning_adapter
+from app.services.ai_risk_reasoning import (
+    build_sanitized_reasoning_payload,
+    get_ai_risk_reasoning_adapter,
+    unavailable_ai_risk_reasoning,
+)
 from app.services.synthetic_extractor import extract_synthetic_evidence
 from app.services.ocr_adapter import extract_ocr_evidence
 from app.services.mrz_adapter import extract_mrz_evidence
@@ -38,6 +42,7 @@ from app.services.risk_engine import (
 )
 from app.services.explanation_engine import generate_explanation
 from app.services.officer_review import OfficerReviewService
+from app.core.config import settings
 
 
 def run_screening_pipeline(
@@ -134,12 +139,17 @@ def run_screening_pipeline(
 
     ai_risk_reasoning = None
     if enable_ai_risk_reasoning:
-        payload = build_sanitized_reasoning_payload(
-            risk_level=risk_level, risk_score=risk_score, uncertainty_score=uncertainty_score,
-            signals=signals, conflicts=conflicts, extracted_fields=sample.extracted_fields,
-            recommendation=recommendation,
-        )
-        ai_risk_reasoning = get_ai_risk_reasoning_adapter().assess(payload)
+        try:
+            payload = build_sanitized_reasoning_payload(
+                risk_level=risk_level, risk_score=risk_score, uncertainty_score=uncertainty_score,
+                signals=signals, conflicts=conflicts, recommendation=recommendation,
+            )
+            ai_risk_reasoning = get_ai_risk_reasoning_adapter(
+                settings.AI_RISK_REASONING_PROVIDER
+            ).assess(payload)
+        except Exception:
+            # Optional advisory failures must never alter or fail deterministic screening.
+            ai_risk_reasoning = unavailable_ai_risk_reasoning()
 
     return MultimodalScreeningResult(
         screening_id=screening_id,

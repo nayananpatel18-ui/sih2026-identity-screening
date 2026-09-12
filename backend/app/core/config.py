@@ -34,6 +34,12 @@ class Settings(BaseSettings):
     FIREBASE_STORAGE_BUCKET: str | None = None
     FIREBASE_LOCAL_FALLBACK: bool = True
     FIREBASE_EMULATOR: bool = False
+
+    # M15 is disabled unless both this server-side setting and the explicit
+    # request flag are enabled. The only supplied provider is local and
+    # deterministic; no external AI integration is configured here.
+    ENABLE_AI_RISK_REASONING: bool = False
+    AI_RISK_REASONING_PROVIDER: str = "deterministic-local"
     
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

@@ -10,6 +10,7 @@ from app.data.models import MultimodalScreeningResult
 from app.services.pipeline import run_screening_pipeline
 from app.services.firebase_service import FirestoreRepository
 from app.api.dependencies.auth import AuthenticatedPrincipal, require_authenticated_principal
+from app.core.config import settings
 
 router = APIRouter()
 
@@ -59,7 +60,9 @@ async def run_screening(request: ScreeningRequest, principal: AuthenticatedPrinc
         enable_cross_document_consistency=request.enable_cross_document_consistency,
         enable_evidence_fusion=request.enable_evidence_fusion,
         enable_officer_review=request.enable_officer_review,
-        enable_ai_risk_reasoning=request.enable_ai_risk_reasoning,
+        enable_ai_risk_reasoning=(
+            settings.ENABLE_AI_RISK_REASONING and request.enable_ai_risk_reasoning
+        ),
     )
 
     # Persist to Firestore or local fallback
